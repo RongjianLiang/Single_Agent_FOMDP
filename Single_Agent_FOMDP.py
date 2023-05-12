@@ -63,8 +63,10 @@ def main():
         average_reward = []
 
         done = False
-
+        # print("Running episodes: {}".format(episode))
         while not done:
+            # print("--Stepping: {}".format(step))
+
             if np.random.random() > epsilon:
                 action = np.argmax(agent.get_qs([np.array([current_state[:size ** 3].reshape((size, size, size))]),
                                                  np.array([current_state[size ** 3:]])]))

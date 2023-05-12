@@ -4,7 +4,8 @@ import random
 import numpy as np
 from keras.models import Model
 from keras.layers import Dense, Dropout, Conv3D, MaxPooling3D, Flatten, concatenate, Input
-from tensorflow.keras.optimizers import Adam
+from keras.optimizers import Adam
+# from tensorflow.keras.optimizers import Adam
 import modifiedTB as tb
 from collections import deque
 from datetime import datetime
@@ -123,7 +124,7 @@ class DQNAgent(object):
 
     def get_qs(self, state):
         with tf.device('/GPU:0'):
-            return self.model.predict(state)[0]
+            return self.model.predict(state, verbose=0)[0]
 
     def train(self, terminal_state, step):
         # Only train if there's sufficient replay memory size
@@ -135,13 +136,13 @@ class DQNAgent(object):
                                         minibatch]),
                               np.array([m[0][self.model_size ** 3:] for m in minibatch])]
             with tf.device('/GPU:0'):
-                current_qs_list = self.model.predict(current_states)
+                current_qs_list = self.model.predict(current_states, verbose=0)
             new_states = [np.array([m[3][:self.model_size ** 3].
                                    reshape((self.model_size, self.model_size, self.model_size)) for m in minibatch]),
                           np.array([m[3][self.model_size ** 3:] for m in minibatch])]
             with tf.device('/GPU:0'):
-                future_qs_list = self.model.predict(new_states)
-                future_qs_target_list = self.target_model.predict(new_states)
+                future_qs_list = self.model.predict(new_states, verbose=0)
+                future_qs_target_list = self.target_model.predict(new_states, verbose=0)
 
             X = current_states
             Y = []
@@ -161,6 +162,5 @@ class DQNAgent(object):
             with tf.device('/GPU:0'):
                 self.model.fit(X, [np.array(Y)], batch_size=self.mini_batch_size, verbose=0, shuffle=False,
                                callbacks=[self.tensorboard] if terminal_state else None)
-
             for t, e in zip(self.target_model.trainable_variables, self.model.trainable_variables):
                 t.assign(t * self.TAU + (1 - self.TAU) * e)
